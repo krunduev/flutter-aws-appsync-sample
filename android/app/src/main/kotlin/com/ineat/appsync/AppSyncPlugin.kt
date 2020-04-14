@@ -62,7 +62,7 @@ class AppSyncPlugin private constructor(private val registrar: PluginRegistry.Re
             client = AWSAppSyncClient.builder()
                     .context(registrar.context().applicationContext)
                     .apiKey(BasicAPIKeyAuthProvider(apiKey))
-                    .region(Regions.EU_CENTRAL_1)
+                    .region(Regions.US_EAST_1)
                     .serverUrl(endpoint)
                     .build()
         }

@@ -62,6 +62,9 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
      * Create AWS AppSync Client if not exist
      */
     private func prepareClient(call: FlutterMethodCall) {
+        if appSyncClient != nil {
+            return
+        }
         let args = call.arguments as! Dictionary<String, Any>
         let endpoint = args["endpoint"] as! String
         let apiKey = args["apiKey"] as! String
@@ -73,7 +76,7 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
         do {
             let provider: AWSAPIKeyAuthProvider = APIKeyAuthProvider(apiKey: apiKey)
             let appSyncConfig = try AWSAppSyncClientConfiguration(url: URL(string:endpoint)!,
-                                                                  serviceRegion: .EUCentral1,
+                                                                  serviceRegion: .USEast1,
                                                                   apiKeyAuthProvider: provider,
                                                                   databaseURL:databaseURL)
             appSyncClient = try AWSAppSyncClient(appSyncConfig: appSyncConfig)

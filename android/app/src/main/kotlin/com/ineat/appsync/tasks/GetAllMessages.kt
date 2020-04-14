@@ -1,5 +1,6 @@
 package com.ineat.appsync.tasks
 
+import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.apollographql.apollo.GraphQLCall
@@ -31,11 +32,15 @@ class GetAllMessages (private val client: AWSAppSyncClient, private val call: Me
                 .enqueue(object : GraphQLCall.Callback<GetMessagesQuery.Data>() {
 
                     override fun onResponse(response: Response<GetMessagesQuery.Data>) {
-                        parseResponse(response)
+                        runOnUiThread(Runnable {
+                            parseResponse(response)
+                        })
                     }
 
                     override fun onFailure(e: ApolloException) {
-                        result.error("onFailure", e.message, null)
+                        runOnUiThread(Runnable {
+                            result.error("onFailure", e.message, null)
+                        })
                     }
 
                 })

@@ -33,7 +33,7 @@ class SubscriptionToNewMessage {
     public func exec(flutterMethodCall: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         do {
             let subscription = SubscribeToNewMessageSubscription()
-            try self.client.subscribe(subscription: subscription, resultHandler: ({ (result, transaction, error) in
+            let res = try self.client.subscribe(subscription: subscription, resultHandler: ({ (result, transaction, error) in
                 if let result = result {
                     if let subscribeToNewMessage = result.data?.subscribeToNewMessage {
                         let values:[String:Any] = [
@@ -55,6 +55,7 @@ class SubscriptionToNewMessage {
                     print(error.localizedDescription)
                 }
             }))
+            print(res.debugDescription)
         } catch {
             print("Error starting subscription.")
         }

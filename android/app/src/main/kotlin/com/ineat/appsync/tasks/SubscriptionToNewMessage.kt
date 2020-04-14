@@ -1,5 +1,6 @@
 package com.ineat.appsync.tasks
 
+import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall
 import com.apollographql.apollo.api.Response
@@ -30,28 +31,34 @@ class SubscriptionToNewMessage(private val client: AWSAppSyncClient, private val
         subscriber.execute(object : AppSyncSubscriptionCall.Callback<SubscribeToNewMessageSubscription.Data> {
 
             override fun onFailure(e: ApolloException) {
-                channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
+                ThreadUtils.runOnUiThread(Runnable {
+                    channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
+                })
             }
 
             override fun onResponse(response: Response<SubscribeToNewMessageSubscription.Data>) {
-                val newMessage = response.data()?.subscribeToNewMessage()?.let {
-                    return@let mapOf(
-                            "id" to it.id(),
-                            "content" to it.content(),
-                            "sender" to it.sender()
-                    )
-                }
+                ThreadUtils.runOnUiThread(Runnable {
+                    val newMessage = response.data()?.subscribeToNewMessage()?.let {
+                        return@let mapOf(
+                                "id" to it.id(),
+                                "content" to it.content(),
+                                "sender" to it.sender()
+                        )
+                    }
 
-                newMessage?.let {
-                    val json = Gson().toJson(newMessage)
-                    channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, json)
-                } ?: run {
-                    channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
-                }
+                    newMessage?.let {
+                        val json = Gson().toJson(newMessage)
+                        channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, json)
+                    } ?: run {
+                        channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
+                    }
+                })
             }
 
             override fun onCompleted() {
-                channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
+                ThreadUtils.runOnUiThread(Runnable {
+                    channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, null)
+                })
             }
 
         })

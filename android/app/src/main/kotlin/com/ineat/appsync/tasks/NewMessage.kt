@@ -1,5 +1,6 @@
 package com.ineat.appsync.tasks
 
+import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
@@ -28,19 +29,23 @@ class NewMessage(private val client: AWSAppSyncClient, private val call: MethodC
         val sender = call.argument<String>("sender")
 
         val mutation = NewMessageMutation.builder()
-                .content(content)
-                .sender(sender)
+                .content(content!!)
+                .sender(sender!!)
                 .build()
 
         client.mutate(mutation).enqueue(object : GraphQLCall.Callback<NewMessageMutation.Data>() {
 
 
             override fun onResponse(response: Response<NewMessageMutation.Data>) {
-                parseResponse(response)
+                ThreadUtils.runOnUiThread(Runnable {
+                    parseResponse(response)
+                })
             }
 
             override fun onFailure(e: ApolloException) {
-                result.error("onFailure", e.message, null)
+                ThreadUtils.runOnUiThread(Runnable {
+                    result.error("onFailure", e.message, null)
+                })
             }
 
         })
