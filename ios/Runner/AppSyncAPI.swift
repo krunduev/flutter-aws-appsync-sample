@@ -196,6 +196,7 @@ public final class NewMessageMutation: GraphQLMutation {
 }
 
 public final class SubscribeToNewMessageSubscription: GraphQLSubscription {
+    
   public static let operationString =
     "subscription SubscribeToNewMessage {\n  subscribeToNewMessage {\n    __typename\n    id\n    content\n    sender\n  }\n}"
 

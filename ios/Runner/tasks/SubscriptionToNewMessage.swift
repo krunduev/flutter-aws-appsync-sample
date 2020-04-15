@@ -23,17 +23,23 @@ import AWSAppSync
 class SubscriptionToNewMessage {
     
     private let client: AWSAppSyncClient
-    private let channel: FlutterMethodChannel
-    
+    static var channel: FlutterMethodChannel?
+    static var subscriptionWatcher: Cancellable?
+
     init(client: AWSAppSyncClient, channel: FlutterMethodChannel) {
         self.client = client
-        self.channel = channel
+        SubscriptionToNewMessage.channel = channel
     }
     
+    
     public func exec(flutterMethodCall: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
+        
+        guard SubscriptionToNewMessage.subscriptionWatcher == nil else { return }
+
         do {
             let subscription = SubscribeToNewMessageSubscription()
-            let res = try self.client.subscribe(subscription: subscription, resultHandler: ({ (result, transaction, error) in
+            SubscriptionToNewMessage.subscriptionWatcher = try self.client.subscribe(subscription: subscription) { [weak self] result, transaction, error in
+
                 if let result = result {
                     if let subscribeToNewMessage = result.data?.subscribeToNewMessage {
                         let values:[String:Any] = [
@@ -45,7 +51,8 @@ class SubscriptionToNewMessage {
                         do {
                             let jsonData = try JSONSerialization.data(withJSONObject: values, options: .prettyPrinted)
                             let convertedString = String(data: jsonData, encoding: String.Encoding.utf8)
-                            self.channel.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, arguments: convertedString)
+                            print("from ios: \(convertedString ?? "")")
+                            SubscriptionToNewMessage.channel?.invokeMethod(AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE_RESULT, arguments: convertedString)
                         } catch {
                             flutterResult(FlutterError(code: "1", message: error.localizedDescription, details: nil))
                         }
@@ -54,8 +61,8 @@ class SubscriptionToNewMessage {
                 } else if let error = error {
                     print(error.localizedDescription)
                 }
-            }))
-            print(res.debugDescription)
+            }
+            print (SubscriptionToNewMessage.subscriptionWatcher ?? "no watcher")
         } catch {
             print("Error starting subscription.")
         }

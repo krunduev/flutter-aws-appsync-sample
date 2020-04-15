@@ -23,7 +23,7 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
     static let SUBSCRIBE_NEW_MESSAGE_RESULT = "subscribeNewMessageResult"
     
     // Client AWS AppSync for call GraphQL requests
-    var appSyncClient: AWSAppSyncClient?
+    static var appSyncClient: AWSAppSyncClient?
     
     let channel: FlutterMethodChannel
     
@@ -48,11 +48,11 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
     private func onPerformMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case AppSyncPlugin.QUERY_GET_ALL_MESSAGES:
-            GetAllMessages(client: appSyncClient!).exec(flutterMethodCall: call, flutterResult: result)
+            GetAllMessages(client: AppSyncPlugin.appSyncClient!).exec(flutterMethodCall: call, flutterResult: result)
         case AppSyncPlugin.MUTATION_NEW_MESSAGE:
-            NewMessage(client: appSyncClient!).exec(flutterMethodCall: call, flutterResult: result)
+            NewMessage(client: AppSyncPlugin.appSyncClient!).exec(flutterMethodCall: call, flutterResult: result)
         case AppSyncPlugin.SUBSCRIBE_NEW_MESSAGE:
-            SubscriptionToNewMessage(client: appSyncClient!, channel: self.channel).exec(flutterMethodCall: call, flutterResult: result)
+            SubscriptionToNewMessage(client: AppSyncPlugin.appSyncClient!, channel: self.channel).exec(flutterMethodCall: call, flutterResult: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -62,9 +62,10 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
      * Create AWS AppSync Client if not exist
      */
     private func prepareClient(call: FlutterMethodCall) {
-        if appSyncClient != nil {
+        if AppSyncPlugin.appSyncClient != nil {
             return
         }
+        
         let args = call.arguments as! Dictionary<String, Any>
         let endpoint = args["endpoint"] as! String
         let apiKey = args["apiKey"] as! String
@@ -79,8 +80,8 @@ public class AppSyncPlugin: NSObject, FlutterPlugin {
                                                                   serviceRegion: .USEast1,
                                                                   apiKeyAuthProvider: provider,
                                                                   databaseURL:databaseURL)
-            appSyncClient = try AWSAppSyncClient(appSyncConfig: appSyncConfig)
-            appSyncClient?.apolloClient?.cacheKeyForObject = { $0["id"] }
+            AppSyncPlugin.appSyncClient = try AWSAppSyncClient(appSyncConfig: appSyncConfig)
+            AppSyncPlugin.appSyncClient?.apolloClient?.cacheKeyForObject = { $0["id"] }
             
         } catch {
             print("Error initializing AppSync client. \(error)")
